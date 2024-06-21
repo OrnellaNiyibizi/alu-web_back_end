@@ -1,36 +1,46 @@
 #!/usr/bin/env python3
-"""Basic Flask app that implements i18n and internationalization"""
-
+"""
+Flask app
+"""
 from flask import Flask, render_template, request
 from flask_babel import Babel
 
-app = Flask(__name__)
-
 
 class Config:
-    """Config class for your application, it deals with babel mostly"""
-    LANGUAGES = ["en", "fr"]
-    BABEL_DEFAULT_LOCALE = "en"
-    BABEL_DEFAULT_TIMEZONE = "UTC"
+    """
+    Config class
+    """
+    LANGUAGES = ['en', 'fr']
 
 
+app = Flask(__name__)
+app.url_map.strict_slashes = False
 app.config.from_object(Config)
+
 babel = Babel(app)
+Babel.default_locale = 'en'
+Babel.default_timezone = 'UTC'
+
+
+@app.route('/', methods=['GET'])
+def hello():
+    """ GET /
+    Return:
+      - Render template
+    """
+    return render_template('4-index.html')
 
 
 @babel.localeselector
 def get_locale():
-    """Get locale for your application"""
+    """
+    Get locale from request
+    """
     locale = request.args.get('locale')
-    if locale and locale in app.config['LANGUAGES']:
+    if locale in Config.LANGUAGES:
         return locale
-    return request.accept_languages.best_match(app.config['LANGUAGES'])
+    return request.accept_languages.best_match(Config.LANGUAGES)
 
-
-@app.route('/', methods=['GET'], strict_slashes=False)
-def home():
-    """Home page for your application"""
-    return render_template('3-index.html')
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port="5000")
