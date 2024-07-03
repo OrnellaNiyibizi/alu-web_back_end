@@ -1,32 +1,35 @@
 #!/usr/bin/env python3
-""" log stats """
+'''Task 12: Log stats
+'''
 from pymongo import MongoClient
 
-def main(collection, options=None):
-    """ log stats"""
-    
 
-    num_logs = collection.count({})
-    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    results = [0, 0, 0, 0, 0]
-    num_status_check = collection.count({"method": "GET", "path": "/status"})
-    for method in methods:
-        num_method = collection.count({"method": method})
-        results[methods.index(method)] = num_method
-    
-    print("{} logs".format(num_logs))
-    print("Methods:")
-    for method in methods:
-        print("\tmethod {}: {}".format(method, results[methods.index(method)]))
-    
-    print("{} status check".format(num_status_check))
+def print_nginx_request_logs(nginx_collection):
+    '''Prints stats about Nginx request logs.
+    '''
+    try:
+        print('{} logs'.format(nginx_collection.count_documents({})))
+        print('Methods:')
+        methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+        for method in methods:
+            req_count = nginx_collection.count_documents({'method': method})
+            print('\tmethod {}: {}'.format(method, req_count))
+        status_checks_count = nginx_collection.count_documents({'method': 'GET', 'path': '/status'})
+        print('{} status check'.format(status_checks_count))
+    except Exception as e:
+        print("An error occurred:", e)
 
 
+def run():
+    '''Provides some stats about Nginx logs stored in MongoDB.
+    '''
+    try:
+        client = MongoClient('mongodb://127.0.0.1:27017')
+        nginx_collection = client.logs.nginx
+        print_nginx_request_logs(nginx_collection)
+    except Exception as e:
+        print("Failed to connect to MongoDB:", e)
 
 
-
-if __name__ == "__main__":
-    client = MongoClient()
-    db = client.logs
-    logs = db.nginx
-    main(logs)
+if __name__ == '__main__':
+    run()
